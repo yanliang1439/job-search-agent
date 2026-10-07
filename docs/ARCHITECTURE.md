@@ -1,41 +1,37 @@
-# Architecture: from markdown agents to code
+# Architecture
 
-The original pipeline was four markdown instruction documents plus ad-hoc
-agent runs:
-
-| # | Markdown agent | Instruction doc | Role |
-|---|---|---|---|
-| 1 | 猎手 (Scout) | `scout_brief.md` | daily scan, filter, dedupe, JD-verify, daily digest |
-| 2 | 投递手 (Preparer) | `preparer_brief.md` | JD intake, ATS score, tailored resume, cover letter, tracker |
-| 3 | Submitter | (new, Hermes-style) | browser form filling with human review |
-| 4 | Networker | (outreach drafts) | referral targets + cold messages — NOT ported (outreach copy is a writing task, not a rules engine) |
-
-## How the modules map
+## Modules
 
 ```
-scout_brief.md  ──rules──>  jobagent/scout.py      (filters)
-                   │         jobagent/digest.py     (daily report)
-                   │         config/keywords.yaml   (track keywords)
-                   │         config/preferences.example.yaml (windows, caps, blacklists)
-                   ▼
-preparer_brief.md ──rules──> jobagent/ats.py        (0-100 scoring + bands)
-                             jobagent/preparer.py   (resume truthfulness guards)
-                             jobagent/models.py     (ATSResult)
-
-new submitter   ──rules──>  jobagent/submitter.py  (FormFillPlan, ReviewGate,
-                             FormFillerAdapter, DryRunFiller, PlaywrightFiller stub)
-                             jobagent/models.py     (Application state machine)
-
-Excel tracker   ──schema─>  jobagent/tracker.py    (SQLite applications table)
+config/*.example.yaml ──templates──> user copies to gitignored
+                                     preferences.yaml / keywords.yaml / user.yaml
+                                          │
+                                          ▼
+jobagent/config.py ──loads──> Config (all rules are user-tunable)
+                                          │
+        ┌─────────────┬─────────────┬─────┴───────┬──────────────┐
+        ▼             ▼             ▼             ▼              ▼
+   scout.py      digest.py      ats.py     preparer.py    submitter.py
+   (filters)   (daily report) (0-100     (resume         (FormFillPlan,
+                             scoring)    truthfulness     ReviewGate,
+                                         guards)         state machine)
+                                                        │
+                                                        ▼
+                                                   tracker.py
+                                              (SQLite applications)
 ```
+
+`jobagent/models.py` holds the typed dataclasses (`JobPosting`, `ATSResult`,
+`Application`); `jobagent/cli.py` wires everything to the `jobagent`
+command.
 
 ## Key design decisions
 
 1. **Deterministic over clever.** `ats.score_jd` is a documented weighted
    heuristic, not an LLM call, so the same JD + skill bank always yields the
    same score. "Strong match" (used by the 3–5yr / Mid-IC rules) is defined
-   as ≥50% of the track's keywords appearing in the posting
-   (`scout.STRONG_MATCH_RATIO`).
+   as a configurable fraction of the track's keywords appearing in the
+   posting (`levels.strong_match_ratio`, default 0.5).
 2. **Fail closed.** Unparseable posting dates are not fresh; unverified
    postings never enter the recommendation zone; unknown legal items block
    auto-submit.
@@ -54,9 +50,10 @@ Excel tracker   ──schema─>  jobagent/tracker.py    (SQLite applications ta
 
 ## What was intentionally left out (v1)
 
-- Resume LaTeX generation and cover-letter writing (writing tasks; the
+- Resume generation and cover-letter writing (writing tasks; the
   truthfulness guards in `preparer.py` are the codifiable part).
 - Real browser automation (`PlaywrightFiller` is a stub by design).
-- The networker/outreach agent (no stable rules to encode).
+- Job-board scrapers (`scout` consumes postings JSONL; collectors are
+  a separate concern).
 - The Simplify-profile lookup (needs a live browser session; the
   `FieldSource.SIMPLIFY` provenance slot is reserved in `FormFillPlan`).
