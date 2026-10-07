@@ -1,0 +1,28 @@
+# Personal data — NEVER commit these
+user.yaml
+config/user.yaml
+config/preferences.yaml
+config/keywords.yaml
+.env
+*.db
+*.sqlite
+*.sqlite3
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Test / coverage artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Editor
+.venv/
+.vscode/
+.idea/
+*.swp

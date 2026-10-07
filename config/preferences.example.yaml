@@ -1,0 +1,85 @@
+# Neutral template — copy to preferences.yaml and make it yours.
+# The repo ships with these neutral defaults; your real rules live only in
+# the gitignored config/preferences.yaml.
+# Personal data goes in config/user.yaml (gitignored), never here.
+
+search:
+  job_board_freshness_hours: 24          # posting-age window for job boards; adjust to taste
+  university_freshness_days: 14          # posting-age window for university career pages
+
+tracks:
+  # digest priority order and per-track minimum when a track has new verified postings
+  order: [primary, secondary, extended, selective]
+  min_per_track: 3
+
+digest:
+  max_entries: 20                        # recommendation zone cap
+  unverified_counts_toward_cap: false    # pending-verification section takes no slots
+
+levels:
+  # levels accepted outright — adjust to your seniority
+  accepted: [entry, junior, associate, "I", "II"]
+  # max years of required experience accepted outright
+  outright_max_years: 3
+  # years bands that need a strong match
+  strong_match_max_years: 5
+  mid_ic_strong_match_only: true
+  # excluded levels — adjust to your seniority
+  excluded: [senior, staff, principal]
+  exclude_people_management: true
+  # hard "0-2 years / new-grad only" junior postings: still accepted, flagged
+  accept_new_grad_only_with_caution_flag: true
+  # min fraction of a track's keywords that must appear for a "strong match"
+  strong_match_ratio: 0.5
+
+location:
+  remote_ok: true
+  on_site_required_region: "<YOUR REGION>"   # e.g. "Bay Area, CA"; used in rejection messages
+  # substrings that identify your region (case-insensitive), e.g.:
+  #   - "bay area"
+  #   - "san francisco"
+  #   - "california"
+  # Leave empty to skip region filtering entirely (on-site postings pass
+  # with a "region_unconfigured" flag instead of being rejected).
+  region_markers: []
+  home_base: "<HOME_BASE>"                   # e.g. "Austin, TX"
+  # cities considered a reasonable commute from home_base, e.g.:
+  #   - "Austin"
+  #   - "Round Rock"
+  # Postings in your region but outside these cities are kept with a
+  # "commute_unclear" flag.
+  reasonable_commute_cities: []
+
+filters:
+  # staffing/recruiting agencies whose postings are filtered out, e.g.:
+  #   - "Aquent"
+  #   - "TPI Global Solutions"
+  staffing_agency_blacklist: []
+  exclude_staffing_agencies: true
+  # pre-sales titles filtered out entirely, e.g.:
+  #   - "solutions engineer"
+  #   - "sales engineer"
+  presales_titles: []
+  exclude_presales: true
+  exclude_strategy_consulting: true       # management / strategy / pre-sales consulting
+  consultative_travel_flag: true          # flag consulting roles with heavy travel
+
+ats:
+  priority_threshold: 85                 # >=85: submit same day, deep customization
+  recommend_threshold: 75                # 75-84: customize and review
+  low_priority_threshold: 60             # 60-74: only if you insist or cost is trivial
+  # below 60: normally do not apply
+
+captcha:
+  policy: agent_solves                    # agent_solves | ask | user_handles
+
+submitter:
+  # legal items that can NEVER be auto-submitted; each needs explicit per-item consent
+  legal_items:
+    - privacy_consent
+    - arbitration_agreement
+    - background_check_consent
+    - drug_test_consent
+    - non_compete
+    - attestation
+    - e_signature

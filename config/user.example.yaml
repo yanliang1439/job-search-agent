@@ -1,0 +1,18 @@
+# Personal data template — gitignored. Copy to config/user.yaml and fill in.
+# jobagent.config loads this ONLY from user.yaml; it is never read from the repo.
+# Environment variables (JOBAGENT_<FIELD>) override these values.
+personal:
+  full_name: "<FULL_NAME>"
+  email: "<EMAIL>"                        # application-form email
+  resume_email: "<EMAIL>"                 # resume header email (may differ)
+  phone: "<PHONE>"
+  linkedin: "<LINKEDIN_URL>"
+  github: "<GITHUB_URL>"
+  city: "<CITY>"
+  state: "<STATE>"
+  zip: "<ZIP>"
+  street_address: "<STREET_ADDRESS>"      # kept as backup for forms that require it
+  home_base: "<HOME_BASE>"                # e.g. Fremont, CA
+  graduation: "Expected Jun 2027"
+  work_authorization: "Authorized to work in the U.S."
+  needs_sponsorship: false

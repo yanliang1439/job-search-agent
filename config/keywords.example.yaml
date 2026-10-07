@@ -1,0 +1,24 @@
+# Neutral keyword template — replace with YOUR OWN target keywords.
+# Copy to config/keywords.yaml (gitignored) and adapt.
+# Keywords are matched case-insensitively against title + description.
+#
+# Priority order for classification when a posting matches several tracks:
+# primary > secondary > extended > selective
+
+tracks:
+  primary:
+    - "data analyst"
+    - "product analyst"
+  secondary:
+    - "ai product analyst"
+  extended:
+    - "analytics consultant"
+    - "operations analyst"
+  selective:
+    - "analytics engineer"
+
+# University career pages you want to scan (14-day freshness window).
+# Examples:
+#   - "CSU Careers"
+#   - "University of Texas at Austin"
+university_sources: []
