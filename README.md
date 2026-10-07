@@ -51,7 +51,7 @@ on-site postings pass with a `region_unconfigured` flag instead of being rejecte
                               +-------------------------------------+
                               |
                     +---------+---------+
-                    | submitter.py      |  Hermes-style human-in-the-loop:
+                    | submitter.py      |  human-in-the-loop:
                     | fill -> gate      |  agent fills, human reviews,
                     | ReviewGate        |  legal items ALWAYS need
                     +-------------------+  explicit per-item consent
@@ -63,17 +63,17 @@ on-site postings pass with a `region_unconfigured` flag instead of being rejecte
                     +-------------------+
 ```
 
-### Module map (old markdown agents -> code)
+### Modules
 
-| Old agent / doc              | Code module              | Responsibility |
-|------------------------------|--------------------------|----------------|
-| 猎手 scout (`scout_brief.md`) | `jobagent/scout.py`      | freshness windows (24h job boards / 14d university), track classification, level judgement, location, staffing-agency + pre-sales + hard filters, dedupe |
-| scout daily report           | `jobagent/digest.py`     | verified-only recommendation zone (cap 20, per-track minimum 3, Primary > Secondary > Extended > Selective), separate pending-verification zone |
-| 投递手 preparer (`preparer_brief.md`) ATS step | `jobagent/ats.py` | deterministic 0-100 JD scoring with matched/missed lists and bands (priority >= 85, recommend 75-84, low 60-74, skip < 60) |
-| 投递手 preparer authenticity  | `jobagent/preparer.py`   | resume truthfulness guards (Weibo title, sponsorship phrase, work-auth header, SAS qualifier, no GPA, graduation date) |
-| submitter (Hermes-style)     | `jobagent/submitter.py`  | `FormFillPlan` (field provenance: user_config / simplify / needs_user), `ReviewGate.can_auto_submit` (all required fields resolved AND zero pending legal items), `DryRunFiller` + `PlaywrightFiller` stub |
-| Excel tracker                | `jobagent/tracker.py`    | SQLite `applications` table with CRUD + guarded status transitions |
-| preferences / experience docs | `config/*.yaml`, `jobagent/config.py`, `jobagent/models.py` | rule configuration, typed dataclasses, `Application` state machine |
+| Module | What it does |
+|---|---|
+| `jobagent/scout.py` | Filter postings: freshness windows, track classification, level judgement, location rules, staffing-agency / pre-sales / hard filters, dedupe |
+| `jobagent/digest.py` | Daily digest: verified-only recommendation zone (configurable cap, per-track minimum, priority order) + separate pending-verification zone |
+| `jobagent/ats.py` | Deterministic 0–100 JD scoring with matched/missed skills and apply/skip bands |
+| `jobagent/preparer.py` | Resume truthfulness guards: configurable forbidden/required claims checked before a resume goes out |
+| `jobagent/submitter.py` | Human-in-the-loop form filling: `FormFillPlan` (field provenance), `ReviewGate` (auto-submit only when all required fields are resolved and zero legal items are pending), `DryRunFiller` + `PlaywrightFiller` stub |
+| `jobagent/tracker.py` | SQLite `applications` ledger with CRUD + guarded status transitions |
+| `config/*.yaml`, `jobagent/config.py`, `jobagent/models.py` | All user-tunable rules, typed dataclasses, `Application` state machine |
 
 ## Quick start
 
@@ -146,9 +146,13 @@ Before pushing, grep for leaks: `grep -riE "[0-9]{3}-[0-9]{3}-[0-9]{4}|@gmail|@u
 
 ## 中文摘要
 
-这是一个把原来写在 markdown 文档里的求职 pipeline 规则（猎手 scout / 投递手 preparer / 投递 submitter / 跟踪 tracker）转成**可测试、可版本化的 Python 代码**的项目，风格对标 Hermes：**机械填表由 agent 做，最终提交点击和每一个法律勾选框永远归人**。
+纯 Python（仅标准库、零第三方依赖）的求职 CLI 工具包：
 
-- **零第三方依赖**：只用 Python 标准库，到处都能跑；测试需要 `pytest`。
-- **核心规则都已编码**：24h/14d 新鲜度窗口、四档 track 分类、级别判断（含 0–2 年 new-grad-only 的 overqualified 警告旗）、湾区通勤地点规则、中介/售前/硬过滤、去重；日报只收 JD 已核实职位（20 条上限、每 track 至少 3 条）；ATS 0–100 确定性打分；简历真实性六条红线检查；提交前的 ReviewGate（必填项齐全 + 无未决法律项才允许自动提交，法律项永远逐项人工同意）。
-- **隐私安全**：个人信息只从 gitignored 的 `config/user.yaml` 或环境变量读取，仓库里只有占位符；浏览器凭证永不进仓库。
-- **使用**：`jobagent scout/digest/ats/resume-check/submit/track` 六个子命令，详见上文；`pytest` 全量测试。
+- **scout** —— 按新鲜度、级别、地点和硬规则过滤职位，去重
+- **digest** —— 生成日报：只收已核实的推荐 + 单独的待核实区
+- **ats** —— 给 JD 打 0–100 分，列出匹配 / 缺失技能
+- **resume-check** —— 简历发出前先过真实性检查
+- **submit** —— 人工审核的填表流程：agent 填表，每次提交点击和每个法律勾选框都由人确认
+- **track** —— SQLite 申请记录
+
+所有规则（时间窗、级别、地点、关键词、黑名单）都在配置文件里改，仓库自带中性模板，照"Make it yours"一节 5 分钟配好；个人信息只读 gitignored 的 `config/user.yaml` 或环境变量。六个子命令见上文 CLI 用法，`pytest` 全量测试。
