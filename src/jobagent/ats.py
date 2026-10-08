@@ -83,7 +83,20 @@ def score_jd(
 
     def has_candidate(skill: str) -> bool:
         needle = _normalize(skill)
-        return any(needle in bank or bank in needle for bank in norm_bank if needle)
+        if not needle:
+            return False
+        for bank in norm_bank:
+            if not bank:
+                continue
+            if needle == bank:
+                return True
+            # word-boundary substring in either direction ("R" must not
+            # match inside "quality improvement").
+            if re.search(r"(?<!\w)" + re.escape(needle) + r"(?!\w)", bank):
+                return True
+            if re.search(r"(?<!\w)" + re.escape(bank) + r"(?!\w)", needle):
+                return True
+        return False
 
     for skill in required:
         possible += W_REQUIRED
